@@ -72,7 +72,7 @@ const Card: React.FC<{ defaultData?: CardInfo }> = ({ defaultData }) => {
             contentEditable
             onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
             onBlur={(e) =>
-              Number.isNaN(Number(e.target.innerText)) &&
+              !Number.isNaN(Number(e.target.innerText)) &&
               handleChange("count", e.target.innerText)
             }
             dangerouslySetInnerHTML={{ __html: info.count }}
@@ -84,7 +84,7 @@ const Card: React.FC<{ defaultData?: CardInfo }> = ({ defaultData }) => {
             contentEditable
             onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
             onBlur={(e) =>
-              Number.isNaN(Number(e.target.innerText)) &&
+              !Number.isNaN(Number(e.target.innerText)) &&
               handleChange("reposition", e.target.innerText)
             }
             dangerouslySetInnerHTML={{ __html: info.reposition }}
