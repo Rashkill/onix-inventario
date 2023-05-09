@@ -40,7 +40,6 @@ function App() {
     (sectionIndex: number) => () => {
       sections[sectionIndex].cards.push({
         name: `Sticker ${sections[sectionIndex].cards.length + 1}`,
-        img: "",
         count: 0,
         reposition: 0,
       });
@@ -51,8 +50,12 @@ function App() {
 
   const handleEditCard = useCallback(
     (sectionIndex: number, cardIndex: number) =>
-      (key: keyof CardInfo, value: string | number) => {
-        sections[sectionIndex].cards[cardIndex][key] = value as never;
+      (key: keyof CardInfo, value?: string | number) => {
+        sections[sectionIndex].cards[cardIndex][key] = (
+          typeof value === "number" && Number.isNaN(value)
+            ? sections[sectionIndex].cards[cardIndex][key]
+            : value
+        ) as never;
         setSections([...sections]);
       },
     [sections]
@@ -97,7 +100,7 @@ function App() {
             {section.cards.map((card, index) => (
               <Card
                 key={`Card${index + sectionIndex}`}
-                defaultData={card}
+                data={card}
                 onChange={handleEditCard(sectionIndex, index)}
                 onClickRemove={handleRemoveCard(sectionIndex, index)}
               />

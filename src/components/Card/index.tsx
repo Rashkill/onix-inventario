@@ -1,30 +1,32 @@
-import React, { useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import Sticker from "@/assets/logo.png";
 
+import { fileToBase64 } from "@/utils/fileFunctions";
 import "./card.scss";
 
 export type CardInfo = {
   count: number;
   reposition: number;
-  img: string;
+  img?: string;
   name: string;
 };
 
 const Card: React.FC<{
-  defaultData?: CardInfo;
-  onChange?: (key: keyof CardInfo, value: string | number) => void;
+  data?: CardInfo;
+  onChange?: (key: keyof CardInfo, value?: string | number) => void;
   onClickRemove?: () => void;
 }> = ({
-  defaultData = {
+  data = {
     count: 0,
     reposition: 0,
-    img: Sticker,
     name: "Nuevo Sticker",
   },
   onChange,
   onClickRemove,
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const imgString = useMemo(() => data.img || Sticker, [data.img]);
 
   return (
     <div className="card">
@@ -33,7 +35,7 @@ const Card: React.FC<{
           contentEditable
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
           onBlur={(e) => onChange?.("name", e.target.innerText)}
-          dangerouslySetInnerHTML={{ __html: defaultData.name }}
+          dangerouslySetInnerHTML={{ __html: data.name }}
         />
         <button className="delete" onClick={onClickRemove}>
           X
@@ -44,20 +46,16 @@ const Card: React.FC<{
         ref={inputRef}
         type="file"
         onChange={(e) =>
-          onChange?.(
-            "img",
-            e.target.files?.[0]
-              ? URL.createObjectURL(e.target.files[0])
-              : Sticker
-          )
+          e.target.files?.[0] &&
+          fileToBase64(e.target.files[0]).then((v) => onChange?.("img", v))
         }
         multiple={false}
       />
       <img
-        title={defaultData.name}
+        title={data.name}
         alt="sticker"
         onClick={() => inputRef.current?.click()}
-        src={defaultData.img || Sticker}
+        src={imgString}
         className="card-img"
       />
       <div className="card-info">
@@ -65,11 +63,8 @@ const Card: React.FC<{
           <p
             contentEditable
             onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-            onBlur={(e) =>
-              !Number.isNaN(Number(e.target.innerText)) &&
-              onChange?.("count", e.target.innerText)
-            }
-            dangerouslySetInnerHTML={{ __html: defaultData.count }}
+            onBlur={(e) => onChange?.("count", Number(e.target.innerText))}
+            dangerouslySetInnerHTML={{ __html: data.count }}
           />
         </div>
         <div className="reposition">
@@ -77,11 +72,8 @@ const Card: React.FC<{
           <span
             contentEditable
             onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-            onBlur={(e) =>
-              !Number.isNaN(Number(e.target.innerText)) &&
-              onChange?.("reposition", e.target.innerText)
-            }
-            dangerouslySetInnerHTML={{ __html: defaultData.reposition }}
+            onBlur={(e) => onChange?.("reposition", Number(e.target.innerText))}
+            dangerouslySetInnerHTML={{ __html: data.reposition }}
           />
         </div>
       </div>
