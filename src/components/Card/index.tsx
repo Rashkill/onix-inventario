@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useRef } from "react";
 import Sticker from "@/assets/logo.png";
 
 import "./card.scss";
@@ -10,30 +10,21 @@ export type CardInfo = {
   name: string;
 };
 
-const Card: React.FC<{ defaultData?: CardInfo }> = ({ defaultData }) => {
-  const [info, setInfo] = useState<CardInfo>(
-    defaultData || {
-      count: 0,
-      reposition: 0,
-      img: Sticker,
-      name: "Nuevo Sticker",
-    }
-  );
-
+const Card: React.FC<{
+  defaultData?: CardInfo;
+  onChange?: (key: keyof CardInfo, value: string | number) => void;
+  onClickRemove?: () => void;
+}> = ({
+  defaultData = {
+    count: 0,
+    reposition: 0,
+    img: Sticker,
+    name: "Nuevo Sticker",
+  },
+  onChange,
+  onClickRemove,
+}) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
-
-  const handleChange = useCallback((key: keyof CardInfo, value: string) => {
-    setInfo((prev) => {
-      if (prev[key] === value) return prev;
-
-      if (typeof prev[key] === "number")
-        prev[key] = (Number(value) || prev[key]) as never;
-      else if (key !== "img") prev[key] = (value || "-") as never;
-      else prev[key] = (value || prev[key]) as never;
-
-      return { ...prev };
-    });
-  }, []);
 
   return (
     <div className="card">
@@ -41,16 +32,19 @@ const Card: React.FC<{ defaultData?: CardInfo }> = ({ defaultData }) => {
         <p
           contentEditable
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-          onBlur={(e) => handleChange("name", e.target.innerText)}
-          dangerouslySetInnerHTML={{ __html: info.name }}
+          onBlur={(e) => onChange?.("name", e.target.innerText)}
+          dangerouslySetInnerHTML={{ __html: defaultData.name }}
         />
+        <button className="delete" onClick={onClickRemove}>
+          X
+        </button>
       </div>
       <input
         hidden
         ref={inputRef}
         type="file"
         onChange={(e) =>
-          handleChange(
+          onChange?.(
             "img",
             e.target.files?.[0]
               ? URL.createObjectURL(e.target.files[0])
@@ -60,10 +54,10 @@ const Card: React.FC<{ defaultData?: CardInfo }> = ({ defaultData }) => {
         multiple={false}
       />
       <img
-        title={info.name}
+        title={defaultData.name}
         alt="sticker"
         onClick={() => inputRef.current?.click()}
-        src={info.img || Sticker}
+        src={defaultData.img || Sticker}
         className="card-img"
       />
       <div className="card-info">
@@ -73,9 +67,9 @@ const Card: React.FC<{ defaultData?: CardInfo }> = ({ defaultData }) => {
             onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
             onBlur={(e) =>
               !Number.isNaN(Number(e.target.innerText)) &&
-              handleChange("count", e.target.innerText)
+              onChange?.("count", e.target.innerText)
             }
-            dangerouslySetInnerHTML={{ __html: info.count }}
+            dangerouslySetInnerHTML={{ __html: defaultData.count }}
           />
         </div>
         <div className="reposition">
@@ -85,9 +79,9 @@ const Card: React.FC<{ defaultData?: CardInfo }> = ({ defaultData }) => {
             onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
             onBlur={(e) =>
               !Number.isNaN(Number(e.target.innerText)) &&
-              handleChange("reposition", e.target.innerText)
+              onChange?.("reposition", e.target.innerText)
             }
-            dangerouslySetInnerHTML={{ __html: info.reposition }}
+            dangerouslySetInnerHTML={{ __html: defaultData.reposition }}
           />
         </div>
       </div>

@@ -1,0 +1,36 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    > button.delete {
+      cursor: pointer;
+      appearance: none;
+      outline: none;
+      border: none;
+      border-radius: 20px;
+      background-color: #ff5c74;
+      color: white;
+      height: 30px;
+    }
+  }
+  .cards-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .new-section {
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  > hr {
+    margin-top: 20px;
+  }
+}
