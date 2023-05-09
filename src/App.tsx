@@ -2,17 +2,22 @@ import Card, { CardInfo } from "@/components/Card";
 import NewCard from "@/components/Card/NewCard";
 import { Fragment, useCallback, useState } from "react";
 
-function App() {
-  const [sections, setSections] = useState<
-    { title?: string; cards: (CardInfo | undefined)[] }[]
-  >([{ title: "Nueva Seccion", cards: [] }]);
+type SectionType = { title?: string; cards: (CardInfo | undefined)[] };
 
-  const handleAddCard = useCallback((sectionIndex: number) => {
-    setSections((prev) => {
-      prev?.[sectionIndex].cards.push(undefined);
-      return [...prev];
-    });
-  }, []);
+function App() {
+  const [sections, setSections] = useState<SectionType[]>([
+    { title: "Nueva Seccion", cards: [] },
+  ]);
+
+  const handleAddCard = useCallback(
+    (sectionIndex: number) => () => {
+      setSections((prev) => {
+        prev[sectionIndex].cards.push(undefined);
+        return prev;
+      });
+    },
+    []
+  );
 
   return (
     <div
@@ -36,9 +41,9 @@ function App() {
             }}
           >
             {section.cards.map((card, index) => (
-              <Card key={`Card${index + 1}`} defaultData={card} />
+              <Card key={`Card${index + sectionIndex}`} defaultData={card} />
             ))}
-            <NewCard onClick={() => handleAddCard(sectionIndex)} />
+            <NewCard onClick={handleAddCard(sectionIndex)} />
           </div>
         </Fragment>
       ))}
