@@ -1,23 +1,34 @@
+import { Fragment, useCallback, useState } from "react";
 import Card, { CardInfo } from "@/components/Card";
 import NewCard from "@/components/Card/NewCard";
-import { Fragment, useCallback, useState } from "react";
 
 type SectionType = { title?: string; cards: (CardInfo | undefined)[] };
 
 function App() {
   const [sections, setSections] = useState<SectionType[]>([
-    { title: "Nueva Seccion", cards: [] },
+    { title: "Nueva Sección", cards: [] },
   ]);
+
+  const handleChangeSectionTitle = useCallback(
+    (sectionIndex: number, value: string) => {
+      sections[sectionIndex].title = value;
+      setSections([...sections]);
+    },
+    [sections]
+  );
 
   const handleAddCard = useCallback(
     (sectionIndex: number) => () => {
-      setSections((prev) => {
-        prev[sectionIndex].cards.push(undefined);
-        return prev;
-      });
+      sections[sectionIndex].cards.push(undefined);
+      setSections([...sections]);
     },
-    []
+    [sections]
   );
+
+  const handleAddSection = useCallback(() => {
+    sections.push({ title: "Nueva Sección", cards: [] });
+    setSections([...sections]);
+  }, [sections]);
 
   return (
     <div
@@ -31,8 +42,18 @@ function App() {
       <h1 style={{ margin: 0 }}>Inventario de Onix</h1>
       {sections.map((section, sectionIndex) => (
         <Fragment key={`Section:${section.title}${sectionIndex + 1}`}>
-          <hr />
-          <h2 style={{ margin: 0 }}>{section.title}</h2>
+          <hr style={{ marginTop: 20 }} />
+          <h2
+            style={{ fontWeight: 500 }}
+            contentEditable
+            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+            onBlur={(e) =>
+              handleChangeSectionTitle(sectionIndex, e.target.innerText)
+            }
+            dangerouslySetInnerHTML={{
+              __html: section.title || `Sección ${sectionIndex + 1}`,
+            }}
+          />
           <div
             style={{
               display: "flex",
@@ -47,6 +68,13 @@ function App() {
           </div>
         </Fragment>
       ))}
+      <hr style={{ marginTop: 20 }} />
+      <h2
+        style={{ fontWeight: 500, cursor: "pointer" }}
+        onClick={handleAddSection}
+      >
+        + Agregar sección
+      </h2>
     </div>
   );
 }
