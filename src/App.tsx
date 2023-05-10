@@ -73,10 +73,16 @@ function App() {
 
   return (
     <div className="app">
-      <h1>Inventario de Onix</h1>
+      <div className="header">
+        <h1>Inventario de Onix</h1>
+        <hr />
+      </div>
+      <br />
+      <br />
+      <br />
+      <br />
       {sections.map((section, sectionIndex) => (
         <Fragment key={`Section:${section.title}${sectionIndex + 1}`}>
-          <hr />
           <div className="section-title">
             <h2
               style={{ fontWeight: 500 }}
@@ -110,9 +116,9 @@ function App() {
         </Fragment>
       ))}
       <hr />
-      <h2 className="new-section" onClick={handleAddSection}>
+      <button className="new-section" onClick={handleAddSection}>
         + Agregar sección
-      </h2>
+      </button>
     </div>
   );
 }
