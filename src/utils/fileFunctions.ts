@@ -9,21 +9,32 @@ export const fileToBase64 = (file: File): Promise<string> =>
     const filereader = new FileReader();
     filereader.readAsDataURL(file);
     filereader.onload = function (evt) {
-      const image = new Image(); // create Image object
+      const image = new Image();
       image.crossOrigin = "Anonymous";
       image.onload = function () {
-        const canvas = document.createElement("canvas"); //initialize canvas
+        const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
+        if (!context) {
+          reject();
+          return;
+        }
+        canvas.width = image.width;
+        canvas.height = image.height;
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-        const ratio = Math.min(300 / image.height, 300 / image.width);
-
-        canvas.width = image.width * ratio;
-        canvas.height = image.height * ratio;
-
-        context?.drawImage(image, 0, 0, canvas.width, canvas.height);
-        if (context)
-          resolve(cropImageFromCanvas(context).toDataURL("image/png"));
-        else reject();
+        const finalImage = new Image();
+        finalImage.crossOrigin = "Anonymous";
+        finalImage.src = cropImageFromCanvas(context).toDataURL("image/png");
+        finalImage.onload = function () {
+          const ratio = Math.min(
+            300 / finalImage.height,
+            300 / finalImage.width
+          );
+          canvas.width = finalImage.width * ratio;
+          canvas.height = finalImage.height * ratio;
+          context.drawImage(finalImage, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/png"));
+        };
       };
       if (evt.target?.result) image.src = evt.target.result as string;
     };
