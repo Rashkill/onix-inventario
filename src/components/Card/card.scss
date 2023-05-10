@@ -46,6 +46,9 @@
     margin: 20px 10px;
     object-fit: contain;
     transition: all ease 0.25s;
+    transform: scale(0.8);
+    font-size: 20px;
+    font-weight: 500;
     cursor: pointer;
     filter: drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
       drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
@@ -54,7 +57,7 @@
       drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
       drop-shadow(0 0 1px white) drop-shadow(0 0 2px rgba(0, 0, 0, 0.548));
     &:hover {
-      transform: scale(1.1) rotate(8deg);
+      transform: scale(0.9) rotate(8deg);
       filter: drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
         drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
         drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)

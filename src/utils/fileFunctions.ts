@@ -21,10 +21,49 @@ export const fileToBase64 = (file: File): Promise<string> =>
         canvas.height = image.height * ratio;
 
         context?.drawImage(image, 0, 0, canvas.width, canvas.height);
-        const dataURL = canvas.toDataURL("image/png");
-        resolve(dataURL);
+        if (context)
+          resolve(cropImageFromCanvas(context).toDataURL("image/png"));
+        else reject();
       };
       if (evt.target?.result) image.src = evt.target.result as string;
     };
     filereader.onerror = reject;
   });
+
+function cropImageFromCanvas(ctx: CanvasRenderingContext2D) {
+  const canvas = ctx.canvas,
+    pix: { x: number[]; y: number[] } = { x: [], y: [] },
+    imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  let x: number,
+    y: number,
+    index: number,
+    w = canvas.width,
+    h = canvas.height;
+
+  for (y = 0; y < h; y++) {
+    for (x = 0; x < w; x++) {
+      index = (y * w + x) * 4;
+      if (imageData.data[index + 3] > 0) {
+        pix.x.push(x);
+        pix.y.push(y);
+      }
+    }
+  }
+  pix.x.sort(function (a, b) {
+    return a - b;
+  });
+  pix.y.sort(function (a, b) {
+    return a - b;
+  });
+  const n = pix.x.length - 1;
+
+  w = 1 + pix.x[n] - pix.x[0];
+  h = 1 + pix.y[n] - pix.y[0];
+  const cut = ctx.getImageData(pix.x[0], pix.y[0], w, h);
+
+  canvas.width = w;
+  canvas.height = h;
+  ctx.putImageData(cut, 0, 0);
+
+  return canvas;
+}
