@@ -6,17 +6,22 @@ import {
   useRef,
   useState,
 } from "react";
-import Card, { CardInfo } from "@/components/Card";
+import Button from "@/components/Button";
 import NewCard from "@/components/Card/NewCard";
+import Card, { CardInfo } from "@/components/Card";
+
 import SaveIcon from "@/assets/icons/SaveIcon";
 import FolderIcon from "@/assets/icons/FolderIcon";
-import { exportData } from "./utils/fileFunctions";
+
+import { exportData } from "@/utils/fileFunctions";
 
 import "./app.scss";
+import { useModal } from "./context/ModalContext";
 
 type SectionType = { title?: string; cards: CardInfo[] };
 
 function App() {
+  const { showPrompt, close } = useModal();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [sections, setSections] = useState<SectionType[]>([]);
 
@@ -27,14 +32,21 @@ function App() {
 
   const handleRemoveSection = useCallback(
     (sectionIndex: number) => {
-      if (
-        !confirm(
-          "Esto va a borrar toda la seccion y su contenido, querés continuar?"
-        )
-      )
-        return;
-      sections.splice(sectionIndex, 1);
-      setSections([...sections]);
+      const modalIndex = showPrompt({
+        title: `Borrar '${sections[sectionIndex].title}'`,
+        text: "Seguro queres borrar este elemento?",
+        buttons: [
+          {
+            title: "Si",
+            onClick: () => {
+              sections.splice(sectionIndex, 1);
+              setSections([...sections]);
+              close(modalIndex);
+            },
+          },
+          { title: "No", color: "secondary", onClick: () => close(modalIndex) },
+        ],
+      });
     },
     [sections]
   );
@@ -74,10 +86,21 @@ function App() {
 
   const handleRemoveCard = useCallback(
     (sectionIndex: number, cardIndex: number) => () => {
-      if (!confirm("Esto va a borrar todo el elemento, querés continuar?"))
-        return;
-      sections[sectionIndex].cards.splice(cardIndex, 1);
-      setSections([...sections]);
+      const modalIndex = showPrompt({
+        title: `Borrar '${sections[sectionIndex].cards[cardIndex].name}'`,
+        text: "Seguro queres borrar este elemento?",
+        buttons: [
+          {
+            title: "Si",
+            onClick: () => {
+              sections[sectionIndex].cards.splice(cardIndex, 1);
+              setSections([...sections]);
+              close(modalIndex);
+            },
+          },
+          { title: "No", color: "secondary", onClick: () => close(modalIndex) },
+        ],
+      });
     },
     [sections]
   );
@@ -183,9 +206,11 @@ function App() {
         </Fragment>
       ))}
       {sections.length > 0 && <hr />}
-      <button className="new-section" onClick={handleAddSection}>
-        + Agregar sección
-      </button>
+      <Button
+        color="secondary"
+        text="+ Agregar sección"
+        onClick={handleAddSection}
+      />
     </div>
   );
 }
