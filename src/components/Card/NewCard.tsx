@@ -5,9 +5,9 @@ const NewCard: React.FC<{ onClick?: () => void }> = ({ onClick }) => {
   return (
     <div className="card">
       <div className="card-name" />
-      <div className="card-img" onClick={onClick}>
+      <button className="new-sticker" onClick={onClick}>
         + Nuevo Sticker
-      </div>
+      </button>
       <div className="card-info" />
     </div>
   );

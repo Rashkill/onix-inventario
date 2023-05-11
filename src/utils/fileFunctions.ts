@@ -13,7 +13,7 @@ export const fileToBase64 = (file: File): Promise<string> =>
       image.crossOrigin = "Anonymous";
       image.onload = function () {
         const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
+        const context = canvas.getContext("2d", { willReadFrequently: true });
         if (!context) {
           reject();
           return;
@@ -33,6 +33,7 @@ export const fileToBase64 = (file: File): Promise<string> =>
           canvas.width = finalImage.width * ratio;
           canvas.height = finalImage.height * ratio;
           context.drawImage(finalImage, 0, 0, canvas.width, canvas.height);
+
           resolve(canvas.toDataURL("image/png"));
         };
       };

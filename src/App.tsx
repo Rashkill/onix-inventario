@@ -115,7 +115,7 @@ function App() {
           </div>
         </Fragment>
       ))}
-      <hr />
+      {sections.length > 0 && <hr />}
       <button className="new-section" onClick={handleAddSection}>
         + Agregar sección
       </button>

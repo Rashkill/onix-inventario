@@ -1,8 +1,9 @@
-import React, { useMemo, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import Sticker from "@/assets/logo.png";
 
 import { fileToBase64 } from "@/utils/fileFunctions";
 import "./card.scss";
+import Spinner from "@/components/Spinner";
 
 export type CardInfo = {
   count: number;
@@ -24,9 +25,19 @@ const Card: React.FC<{
   onChange,
   onClickRemove,
 }) => {
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const imgString = useMemo(() => data.img || Sticker, [data.img]);
+  const onImageChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files?.[0]) {
+        setLoading(true);
+        await fileToBase64(e.target.files[0]).then((v) => onChange?.("img", v));
+      }
+      setLoading(false);
+    },
+    []
+  );
 
   return (
     <div className="card">
@@ -43,20 +54,22 @@ const Card: React.FC<{
       </div>
       <input
         hidden
+        accept="image/*"
         ref={inputRef}
         type="file"
-        onChange={(e) =>
-          e.target.files?.[0] &&
-          fileToBase64(e.target.files[0]).then((v) => onChange?.("img", v))
-        }
+        onChange={onImageChange}
         multiple={false}
       />
+      <div className="card-img" style={{ display: !loading ? "none" : "flex" }}>
+        <Spinner />
+      </div>
       <img
+        style={{ display: loading ? "none" : "flex" }}
         title={data.name}
         alt="sticker"
         onClick={() => inputRef.current?.click()}
-        src={imgString}
-        className="card-img"
+        src={data.img || Sticker}
+        className={data.img ? "card-img" : "new-img"}
       />
       <div className="card-info">
         <div className="count">

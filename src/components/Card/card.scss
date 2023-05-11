@@ -6,7 +6,6 @@
 
   border-radius: 20px;
   border: 2px solid #20202096;
-  overflow: hidden;
   margin: 10px;
   text-shadow: 2px 0 #fff, -2px 0 #fff, 0 2px #fff, 0 -2px #fff, 1px 1px #fff,
     -1px -1px #fff, 1px -1px #fff, -1px 1px #fff;
@@ -20,6 +19,7 @@
     height: 40px;
     font-weight: 500;
     text-align: center;
+    border-radius: 18px 18px 0 0;
     > p {
       margin: 0 30px;
     }
@@ -47,8 +47,7 @@
     object-fit: contain;
     transition: all ease 0.25s;
     transform: scale(0.8);
-    font-size: 20px;
-    font-weight: 500;
+
     cursor: pointer;
     filter: drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
       drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
@@ -57,7 +56,7 @@
       drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
       drop-shadow(0 0 1px white) drop-shadow(0 0 2px rgba(0, 0, 0, 0.548));
     &:hover {
-      transform: scale(0.9) rotate(8deg);
+      transform: scale(1.1) rotate(8deg);
       filter: drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
         drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
         drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
@@ -66,10 +65,30 @@
         drop-shadow(0 0 1px white) drop-shadow(0 0 4px rgba(0, 0, 0, 0.548));
     }
   }
+  .new-sticker,
+  .new-img {
+    cursor: pointer;
+
+    width: 220px;
+    height: 240px;
+
+    appearance: none;
+    outline: none;
+    border: none;
+
+    &.new-img {
+      object-fit: contain;
+      opacity: 0.4;
+    }
+
+    font-size: 20px;
+    font-weight: 500;
+  }
   .card-info {
     display: flex;
     gap: 2px;
     border-top: 2px solid #20202096;
+    border-radius: 0 0 18px 18px;
     background-color: #20202096;
     height: 25px;
     width: 220px;
@@ -82,11 +101,14 @@
       font-weight: 500;
       color: #202020;
       overflow: hidden;
+
       &.count {
         background-color: #fff6bd;
+        border-radius: 0 0 0 18px;
       }
       &.reposition {
         background-color: #ffb5ab;
+        border-radius: 0 0 18px 0;
       }
       > p,
       span {
