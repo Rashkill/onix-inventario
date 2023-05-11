@@ -10,9 +10,9 @@ import Card, { CardInfo } from "@/components/Card";
 import NewCard from "@/components/Card/NewCard";
 import SaveIcon from "@/assets/icons/SaveIcon";
 import FolderIcon from "@/assets/icons/FolderIcon";
+import { exportData } from "./utils/fileFunctions";
 
 import "./app.scss";
-import { exportData } from "./utils/fileFunctions";
 
 type SectionType = { title?: string; cards: CardInfo[] };
 
