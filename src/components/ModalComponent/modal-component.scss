@@ -28,6 +28,7 @@
 
     min-height: 25vh;
     min-width: 45vw;
+    max-width: 60vw;
 
     margin: 10px;
   }
@@ -47,6 +48,12 @@
       animation: none;
       animation: modal-closed 0.5s ease forwards;
     }
+  }
+}
+
+@media (max-width: 600px) {
+  .modal-component .modal {
+    max-width: 80vw;
   }
 }
 

@@ -34,7 +34,7 @@ function App() {
     (sectionIndex: number) => {
       const modalIndex = showPrompt({
         title: `Borrar '${sections[sectionIndex].title}'`,
-        text: "Seguro queres borrar este elemento?",
+        text: "Seguro queres borrar esta seccion? Esto tambien va a borrar todo el contenido.",
         buttons: [
           {
             title: "Si",
