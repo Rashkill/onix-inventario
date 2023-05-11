@@ -6,6 +6,7 @@
 
   border-radius: 20px;
   border: 2px solid #20202096;
+  background-color: #d3d3d33b;
   margin: 10px;
   text-shadow: 2px 0 #fff, -2px 0 #fff, 0 2px #fff, 0 -2px #fff, 1px 1px #fff,
     -1px -1px #fff, 1px -1px #fff, -1px 1px #fff;
@@ -54,18 +55,12 @@
       drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
       drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
       drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
-      drop-shadow(0 0 1px white) drop-shadow(0 0 2px rgba(0, 0, 0, 0.548));
+      drop-shadow(0 0 1px white) drop-shadow(0 0 1px rgb(0, 0, 0));
     &:hover {
       transform: scale(1.1) rotate(8deg);
-      filter: drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
-        drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
-        drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
-        drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
-        drop-shadow(0 0 1px white) drop-shadow(0 0 1px white)
-        drop-shadow(0 0 1px white) drop-shadow(0 0 4px rgba(0, 0, 0, 0.548));
     }
   }
-  .new-sticker,
+  .new-element,
   .new-img {
     cursor: pointer;
 
@@ -75,6 +70,7 @@
     appearance: none;
     outline: none;
     border: none;
+    background-color: transparent;
 
     &.new-img {
       object-fit: contain;
@@ -115,6 +111,13 @@
         flex: 0.5;
         margin: 0;
       }
+    }
+  }
+  &.new {
+    .card-info,
+    .card-name {
+      background-color: #d3d3d33b;
+      border-top: 1px #d3d3d33b solid;
     }
   }
 }

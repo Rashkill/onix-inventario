@@ -1,13 +1,24 @@
-import { Fragment, useCallback, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Card, { CardInfo } from "@/components/Card";
 import NewCard from "@/components/Card/NewCard";
+import SaveIcon from "@/assets/icons/SaveIcon";
+import FolderIcon from "@/assets/icons/FolderIcon";
 
 import "./app.scss";
+import { exportData } from "./utils/fileFunctions";
 
 type SectionType = { title?: string; cards: CardInfo[] };
 
 function App() {
-  const [sections, setSections] = useState<SectionType[]>([{ cards: [] }]);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [sections, setSections] = useState<SectionType[]>([]);
 
   const handleAddSection = useCallback(() => {
     sections.push({ title: `Sección ${sections.length + 1}`, cards: [] });
@@ -39,7 +50,7 @@ function App() {
   const handleAddCard = useCallback(
     (sectionIndex: number) => () => {
       sections[sectionIndex].cards.push({
-        name: `Sticker ${sections[sectionIndex].cards.length + 1}`,
+        name: `Elemento ${sections[sectionIndex].cards.length + 1}`,
         count: 0,
         reposition: 0,
       });
@@ -63,7 +74,7 @@ function App() {
 
   const handleRemoveCard = useCallback(
     (sectionIndex: number, cardIndex: number) => () => {
-      if (!confirm("Esto va a borrar todo el sticker, querés continuar?"))
+      if (!confirm("Esto va a borrar todo el elemento, querés continuar?"))
         return;
       sections[sectionIndex].cards.splice(cardIndex, 1);
       setSections([...sections]);
@@ -71,10 +82,66 @@ function App() {
     [sections]
   );
 
+  const handleSaveFile = async () => {
+    exportData(
+      sections,
+      `Inventario_Onix_${new Date().toLocaleDateString("es-AR", {
+        dateStyle: "short",
+      })}`
+    );
+  };
+
+  const handleLoadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+    const fileReader = new FileReader();
+    fileReader.readAsText(e.target.files[0], "UTF-8");
+    fileReader.onload = (e) => {
+      const result = JSON.parse(
+        (e.target?.result as string) || "[]"
+      ) as Partial<SectionType>[];
+      console.log(result);
+      if (result.filter((s) => s.cards).length > 0)
+        setSections([...(result as SectionType[])]);
+    };
+  };
+
+  useEffect(() => {
+    const autoSave = localStorage.getItem("inv-auto-save");
+    if (autoSave) {
+      setSections([...JSON.parse(autoSave)]);
+    }
+  }, []);
+
+  useMemo(() => {
+    if (sections.length > 0)
+      localStorage.setItem("inv-auto-save", JSON.stringify(sections));
+  }, [sections]);
+
   return (
     <div className="app">
       <div className="header">
-        <h1>Inventario de Onix</h1>
+        <div className="content">
+          <h1>Inventario de Onix</h1>
+          <div className="actions">
+            <button
+              title="Cargar Archivo"
+              onClick={() => inputRef.current?.click()}
+            >
+              <input
+                hidden
+                accept="application/JSON"
+                ref={inputRef}
+                type="file"
+                onChange={handleLoadFile}
+                multiple={false}
+              />
+              <FolderIcon />
+            </button>
+            <button title="Guardar Archivo" onClick={handleSaveFile}>
+              <SaveIcon />
+            </button>
+          </div>
+        </div>
         <hr />
       </div>
       <br />

@@ -79,3 +79,20 @@ function cropImageFromCanvas(ctx: CanvasRenderingContext2D) {
 
   return canvas;
 }
+
+export const exportData = async (data: unknown, name: string) => {
+  const handle = await showSaveFilePicker({
+    suggestedName: name,
+    types: [
+      {
+        description: "JSON File",
+        accept: { "application/JSON": [".json"] },
+      },
+    ],
+  });
+  const blob = new Blob([JSON.stringify(data)]);
+
+  const writableStream = await handle.createWritable();
+  await writableStream.write(blob);
+  await writableStream.close();
+};

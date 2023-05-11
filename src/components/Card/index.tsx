@@ -1,9 +1,9 @@
 import React, { useCallback, useRef, useState } from "react";
 import Sticker from "@/assets/logo.png";
+import Spinner from "@/components/Spinner";
 
 import { fileToBase64 } from "@/utils/fileFunctions";
 import "./card.scss";
-import Spinner from "@/components/Spinner";
 
 export type CardInfo = {
   count: number;
@@ -20,7 +20,7 @@ const Card: React.FC<{
   data = {
     count: 0,
     reposition: 0,
-    name: "Nuevo Sticker",
+    name: "Nuevo Elemento",
   },
   onChange,
   onClickRemove,
@@ -36,7 +36,7 @@ const Card: React.FC<{
       }
       setLoading(false);
     },
-    []
+    [onChange]
   );
 
   return (
@@ -66,7 +66,7 @@ const Card: React.FC<{
       <img
         style={{ display: loading ? "none" : "flex" }}
         title={data.name}
-        alt="sticker"
+        alt="element"
         onClick={() => inputRef.current?.click()}
         src={data.img || Sticker}
         className={data.img ? "card-img" : "new-img"}
