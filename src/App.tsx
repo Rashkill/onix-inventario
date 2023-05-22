@@ -17,8 +17,9 @@ import { exportData } from "@/utils/fileFunctions";
 
 import "./app.scss";
 import { useModal } from "./context/ModalContext";
-import { onValue, ref, set } from "firebase/database";
+import { get, onValue, ref, set } from "firebase/database";
 import Firebase from "./utils/Firebase";
+import Spinner from "./components/Spinner";
 
 type SectionType = { title?: string; cards: CardInfo[] };
 
@@ -26,6 +27,7 @@ function App() {
   const { showPrompt, close } = useModal();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [sections, setSections] = useState<SectionType[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleAddSection = useCallback(() => {
     sections.push({ title: `Sección ${sections.length + 1}`, cards: [] });
@@ -131,9 +133,21 @@ function App() {
   };
 
   useEffect(() => {
-    onValue(ref(Firebase.Database, "stickers"), (snap) => {
-      if (snap.val()) setSections(snap.val());
-    });
+    const dbRef = ref(
+      Firebase.Database,
+      `stickers${import.meta.env.VITE_APP_ENV !== "prod" ? "-dev" : ""}`
+    );
+    setLoading(true);
+    get(dbRef)
+      .then((snap) => {
+        if (snap.exists()) setSections(snap.val());
+      })
+      .finally(() => {
+        setLoading(false);
+        onValue(dbRef, (snap) => {
+          if (snap.val()) setSections(snap.val());
+        });
+      });
   }, []);
 
   // useEffect(() => {
@@ -146,7 +160,13 @@ function App() {
   useMemo(() => {
     if (sections.length > 0)
       //   localStorage.setItem("inv-auto-save", JSON.stringify(sections));
-      set(ref(Firebase.Database, "stickers"), sections);
+      set(
+        ref(
+          Firebase.Database,
+          `stickers${import.meta.env.VITE_APP_ENV !== "prod" ? "-dev" : ""}`
+        ),
+        sections
+      );
   }, [sections]);
 
   return (
@@ -180,45 +200,50 @@ function App() {
       <br />
       <br />
       <br />
-      {sections.map((section, sectionIndex) => (
-        <Fragment key={`Section:${section.title}${sectionIndex + 1}`}>
-          <div className="section-title">
-            <h2
-              style={{ fontWeight: 500 }}
-              contentEditable
-              onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-              onBlur={(e) =>
-                handleChangeSectionTitle(sectionIndex, e.target.innerText)
-              }
-              dangerouslySetInnerHTML={{
-                __html: section.title || `Sección ${sectionIndex + 1}`,
-              }}
-            />
-            <button
-              className="delete"
-              onClick={() => handleRemoveSection(sectionIndex)}
-            >
-              Eliminar
-            </button>
-          </div>
-          <div className="cards-wrap">
-            {section.cards.map((card, index) => (
-              <Card
-                key={`Card${index + sectionIndex}`}
-                data={card}
-                onChange={handleEditCard(sectionIndex, index)}
-                onClickRemove={handleRemoveCard(sectionIndex, index)}
+      {loading ? (
+        <Spinner />
+      ) : (
+        sections.map((section, sectionIndex) => (
+          <Fragment key={`Section:${section.title}${sectionIndex + 1}`}>
+            <div className="section-title">
+              <h2
+                style={{ fontWeight: 500 }}
+                contentEditable
+                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+                onBlur={(e) =>
+                  handleChangeSectionTitle(sectionIndex, e.target.innerText)
+                }
+                dangerouslySetInnerHTML={{
+                  __html: section.title || `Sección ${sectionIndex + 1}`,
+                }}
               />
-            ))}
-            <NewCard onClick={handleAddCard(sectionIndex)} />
-          </div>
-        </Fragment>
-      ))}
+              <button
+                className="delete"
+                onClick={() => handleRemoveSection(sectionIndex)}
+              >
+                Eliminar
+              </button>
+            </div>
+            <div className="cards-wrap">
+              {section.cards.map((card, index) => (
+                <Card
+                  key={`Card${index + sectionIndex}`}
+                  data={card}
+                  onChange={handleEditCard(sectionIndex, index)}
+                  onClickRemove={handleRemoveCard(sectionIndex, index)}
+                />
+              ))}
+              <NewCard onClick={handleAddCard(sectionIndex)} />
+            </div>
+          </Fragment>
+        ))
+      )}
       {sections.length > 0 && <hr />}
       <Button
         color="secondary"
         text="+ Agregar sección"
         onClick={handleAddSection}
+        disabled={loading}
       />
     </div>
   );

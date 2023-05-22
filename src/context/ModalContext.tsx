@@ -50,6 +50,14 @@ export const ModalContextProvider: React.FC<{
     [modals]
   );
 
+  const remove = useCallback(
+    (index: number) => {
+      modals.splice(index, 1);
+      setModals([...modals]);
+    },
+    [modals]
+  );
+
   const close = useCallback(
     (index: number) => {
       modals[index].visible = false;
@@ -58,15 +66,7 @@ export const ModalContextProvider: React.FC<{
         remove(index);
       }, 500);
     },
-    [modals]
-  );
-
-  const remove = useCallback(
-    (index: number) => {
-      modals.splice(index, 1);
-      setModals([...modals]);
-    },
-    [modals]
+    [modals, remove]
   );
 
   const showPrompt = useCallback(
