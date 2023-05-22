@@ -17,6 +17,8 @@ import { exportData } from "@/utils/fileFunctions";
 
 import "./app.scss";
 import { useModal } from "./context/ModalContext";
+import { onValue, ref, set } from "firebase/database";
+import Firebase from "./utils/Firebase";
 
 type SectionType = { title?: string; cards: CardInfo[] };
 
@@ -48,7 +50,7 @@ function App() {
         ],
       });
     },
-    [sections]
+    [sections, close, showPrompt]
   );
 
   const handleChangeSectionTitle = useCallback(
@@ -102,7 +104,7 @@ function App() {
         ],
       });
     },
-    [sections]
+    [sections, close, showPrompt]
   );
 
   const handleSaveFile = async () => {
@@ -129,15 +131,22 @@ function App() {
   };
 
   useEffect(() => {
-    const autoSave = localStorage.getItem("inv-auto-save");
-    if (autoSave) {
-      setSections([...JSON.parse(autoSave)]);
-    }
+    onValue(ref(Firebase.Database, "stickers"), (snap) => {
+      if (snap.val()) setSections(snap.val());
+    });
   }, []);
+
+  // useEffect(() => {
+  //   const autoSave = localStorage.getItem("inv-auto-save");
+  //   if (autoSave) {
+  //     setSections([...JSON.parse(autoSave)]);
+  //   }
+  // }, []);
 
   useMemo(() => {
     if (sections.length > 0)
-      localStorage.setItem("inv-auto-save", JSON.stringify(sections));
+      //   localStorage.setItem("inv-auto-save", JSON.stringify(sections));
+      set(ref(Firebase.Database, "stickers"), sections);
   }, [sections]);
 
   return (
