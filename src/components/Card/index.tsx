@@ -25,6 +25,7 @@ const Card: React.FC<{
   onChange,
   onClickRemove,
 }) => {
+  const [isDragged, setIsDragged] = useState(false);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -40,8 +41,18 @@ const Card: React.FC<{
   );
 
   return (
-    <div className="card">
-      <div className="card-name">
+    <div
+      className={`card${isDragged ? " dragged" : ""}`}
+      draggable
+      onDragStart={() => {
+        setIsDragged(true);
+      }}
+      onDragEnd={() => {
+        setIsDragged(false);
+      }}
+      onDragOver={(e) => !isDragged && console.log(e.target)}
+    >
+      <div className="card-name" draggable={false}>
         <p
           contentEditable
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
@@ -70,6 +81,7 @@ const Card: React.FC<{
         onClick={() => inputRef.current?.click()}
         src={data.img || Sticker}
         className={data.img ? "card-img" : "new-img"}
+        draggable={false}
       />
       <div className="card-info">
         <div className="count">

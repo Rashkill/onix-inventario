@@ -1,4 +1,8 @@
 .card {
+  &.dragged {
+    opacity: 0.4;
+    // pointer-events: none;
+  }
   position: relative;
   display: flex;
   flex-direction: column;

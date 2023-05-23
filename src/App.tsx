@@ -7,8 +7,7 @@ import {
   useState,
 } from "react";
 import Button from "@/components/Button";
-import NewCard from "@/components/Card/NewCard";
-import Card, { CardInfo } from "@/components/Card";
+import { CardInfo } from "@/components/Card";
 
 import SaveIcon from "@/assets/icons/SaveIcon";
 import FolderIcon from "@/assets/icons/FolderIcon";
@@ -18,8 +17,9 @@ import { exportData } from "@/utils/fileFunctions";
 import "./app.scss";
 import { useModal } from "./context/ModalContext";
 import { get, onValue, ref, set } from "firebase/database";
-import Firebase from "./utils/Firebase";
+import Firebase, { STICKERS_DB } from "./utils/Firebase";
 import Spinner from "./components/Spinner";
+import Section from "./components/Section";
 
 type SectionType = { title?: string; cards: CardInfo[] };
 
@@ -63,52 +63,6 @@ function App() {
     [sections]
   );
 
-  const handleAddCard = useCallback(
-    (sectionIndex: number) => () => {
-      sections[sectionIndex].cards.push({
-        name: `Elemento ${sections[sectionIndex].cards.length + 1}`,
-        count: 0,
-        reposition: 0,
-      });
-      setSections([...sections]);
-    },
-    [sections]
-  );
-
-  const handleEditCard = useCallback(
-    (sectionIndex: number, cardIndex: number) =>
-      (key: keyof CardInfo, value?: string | number) => {
-        sections[sectionIndex].cards[cardIndex][key] = (
-          typeof value === "number" && Number.isNaN(value)
-            ? sections[sectionIndex].cards[cardIndex][key]
-            : value
-        ) as never;
-        setSections([...sections]);
-      },
-    [sections]
-  );
-
-  const handleRemoveCard = useCallback(
-    (sectionIndex: number, cardIndex: number) => () => {
-      const modalIndex = showPrompt({
-        title: `Borrar '${sections[sectionIndex].cards[cardIndex].name}'`,
-        text: "Seguro queres borrar este elemento?",
-        buttons: [
-          {
-            title: "Si",
-            onClick: () => {
-              sections[sectionIndex].cards.splice(cardIndex, 1);
-              setSections([...sections]);
-              close(modalIndex);
-            },
-          },
-          { title: "No", color: "secondary", onClick: () => close(modalIndex) },
-        ],
-      });
-    },
-    [sections, close, showPrompt]
-  );
-
   const handleSaveFile = async () => {
     exportData(
       sections,
@@ -133,41 +87,21 @@ function App() {
   };
 
   useEffect(() => {
-    console.log(`stickers${!import.meta.env.PROD ? "-dev" : ""}`);
-    const dbRef = ref(
-      Firebase.Database,
-      `stickers${!import.meta.env.PROD ? "-dev" : ""}`
-    );
     setLoading(true);
-    get(dbRef)
+    get(ref(Firebase.Database, STICKERS_DB))
       .then((snap) => {
         if (snap.exists()) setSections(snap.val());
       })
       .finally(() => {
         setLoading(false);
-        onValue(dbRef, (snap) => {
+        onValue(ref(Firebase.Database, STICKERS_DB), (snap) => {
           if (snap.val()) setSections(snap.val());
         });
       });
   }, []);
 
-  // useEffect(() => {
-  //   const autoSave = localStorage.getItem("inv-auto-save");
-  //   if (autoSave) {
-  //     setSections([...JSON.parse(autoSave)]);
-  //   }
-  // }, []);
-
   useMemo(() => {
-    if (sections.length > 0)
-      //   localStorage.setItem("inv-auto-save", JSON.stringify(sections));
-      set(
-        ref(
-          Firebase.Database,
-          `stickers${!import.meta.env.PROD ? "-dev" : ""}`
-        ),
-        sections
-      );
+    if (sections.length > 0) set(ref(Firebase.Database, STICKERS_DB), sections);
   }, [sections]);
 
   return (
@@ -205,38 +139,14 @@ function App() {
         <Spinner />
       ) : (
         sections.map((section, sectionIndex) => (
-          <Fragment key={`Section:${section.title}${sectionIndex + 1}`}>
-            <div className="section-title">
-              <h2
-                style={{ fontWeight: 500 }}
-                contentEditable
-                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-                onBlur={(e) =>
-                  handleChangeSectionTitle(sectionIndex, e.target.innerText)
-                }
-                dangerouslySetInnerHTML={{
-                  __html: section.title || `Sección ${sectionIndex + 1}`,
-                }}
-              />
-              <button
-                className="delete"
-                onClick={() => handleRemoveSection(sectionIndex)}
-              >
-                Eliminar
-              </button>
-            </div>
-            <div className="cards-wrap">
-              {section.cards.map((card, index) => (
-                <Card
-                  key={`Card${index + sectionIndex}`}
-                  data={card}
-                  onChange={handleEditCard(sectionIndex, index)}
-                  onClickRemove={handleRemoveCard(sectionIndex, index)}
-                />
-              ))}
-              <NewCard onClick={handleAddCard(sectionIndex)} />
-            </div>
-          </Fragment>
+          <Section
+            key={`Section:${section.title}${sectionIndex + 1}`}
+            index={sectionIndex}
+            title={section.title || `Sección ${sectionIndex + 1}`}
+            cards={section.cards}
+            onBlur={(text) => handleChangeSectionTitle(sectionIndex, text)}
+            onClickRemove={() => handleRemoveSection(sectionIndex)}
+          />
         ))
       )}
       {sections.length > 0 && <hr />}
@@ -244,7 +154,7 @@ function App() {
         color="secondary"
         text="+ Agregar sección"
         onClick={handleAddSection}
-        disabled={loading}
+        hidden={loading}
       />
     </div>
   );
