@@ -133,9 +133,10 @@ function App() {
   };
 
   useEffect(() => {
+    console.log(`stickers${!import.meta.env.PROD ? "-dev" : ""}`);
     const dbRef = ref(
       Firebase.Database,
-      `stickers${import.meta.env.VITE_APP_ENV !== "prod" ? "-dev" : ""}`
+      `stickers${!import.meta.env.PROD ? "-dev" : ""}`
     );
     setLoading(true);
     get(dbRef)
@@ -163,7 +164,7 @@ function App() {
       set(
         ref(
           Firebase.Database,
-          `stickers${import.meta.env.VITE_APP_ENV !== "prod" ? "-dev" : ""}`
+          `stickers${!import.meta.env.PROD ? "-dev" : ""}`
         ),
         sections
       );
