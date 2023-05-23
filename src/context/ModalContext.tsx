@@ -71,7 +71,7 @@ export const ModalContextProvider: React.FC<{
 
   const showPrompt = useCallback(
     (config: PromptConfig) => {
-      return showModal(
+      const modalIndex = showModal(
         <>
           <div className={config.className || "prompt-header"}>
             <h2>
@@ -81,7 +81,11 @@ export const ModalContextProvider: React.FC<{
             <p>{config.text}</p>
           </div>
           <div className="modal-buttons">
-            {config.buttons?.map((b, i) => (
+            {(
+              config.buttons || [
+                { title: "Ok", onClick: () => close(modalIndex) },
+              ]
+            ).map((b, i) => (
               <Button
                 key={`${i + modals.length} ${b.title}`}
                 color={b.color || "secondary"}
@@ -92,8 +96,9 @@ export const ModalContextProvider: React.FC<{
           </div>
         </>
       );
+      return modalIndex;
     },
-    [modals.length, showModal]
+    [modals.length, showModal, close]
   );
 
   const values = useMemo(() => ({ showModal, showPrompt, close }), []);

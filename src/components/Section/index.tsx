@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import Card, { CardInfo } from "../Card";
 import NewCard from "../Card/NewCard";
 import { useModal } from "@/context/ModalContext";
@@ -16,24 +16,31 @@ const Section: React.FC<{
   const [cards, setCards] = useState<CardInfo[]>(initialCards || []);
 
   const handleAddCard = useCallback(() => {
-    cards.push({
+    const newCards = [...cards];
+    newCards.push({
       name: `Elemento ${cards.length + 1}`,
       count: 0,
       reposition: 0,
     });
-    setCards([...cards]);
-  }, [cards]);
+    set(ref(Firebase.Database, `${STICKERS_DB}/${index}/cards`), newCards).then(
+      () => setCards([...newCards])
+    );
+  }, [cards, index]);
 
   const handleEditCard = useCallback(
     (cardIndex: number) => (key: keyof CardInfo, value?: string | number) => {
-      cards[cardIndex][key] = (
+      const newCards = [...cards];
+      newCards[cardIndex][key] = (
         typeof value === "number" && Number.isNaN(value)
           ? cards[cardIndex][key]
           : value
       ) as never;
-      setCards([...cards]);
+      set(
+        ref(Firebase.Database, `${STICKERS_DB}/${index}/cards/${cardIndex}`),
+        newCards[cardIndex]
+      ).then(() => setCards([...newCards]));
     },
-    [cards]
+    [cards, index]
   );
 
   const handleRemoveCard = useCallback(
@@ -45,8 +52,12 @@ const Section: React.FC<{
           {
             title: "Si",
             onClick: () => {
-              cards.splice(cardIndex, 1);
-              setCards([...cards]);
+              const newCards = [...cards];
+              newCards.splice(cardIndex, 1);
+              set(
+                ref(Firebase.Database, `${STICKERS_DB}/${index}/cards`),
+                newCards
+              ).then(() => setCards([...newCards]));
               close(modalIndex);
             },
           },
@@ -54,13 +65,8 @@ const Section: React.FC<{
         ],
       });
     },
-    [cards, close, showPrompt]
+    [cards, index, close, showPrompt]
   );
-
-  useMemo(() => {
-    if (cards.length > 0 && index >= 0)
-      set(ref(Firebase.Database, `${STICKERS_DB}/${index}/cards`), cards);
-  }, [cards, index]);
 
   return (
     <>

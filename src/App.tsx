@@ -30,8 +30,11 @@ function App() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleAddSection = useCallback(() => {
-    sections.push({ title: `Sección ${sections.length + 1}`, cards: [] });
-    setSections([...sections]);
+    const newSections = [...sections];
+    newSections.push({ title: `Sección ${sections.length + 1}`, cards: [] });
+    set(ref(Firebase.Database, STICKERS_DB), newSections).then(() =>
+      setSections([...newSections])
+    );
   }, [sections]);
 
   const handleRemoveSection = useCallback(
@@ -43,8 +46,11 @@ function App() {
           {
             title: "Si",
             onClick: () => {
-              sections.splice(sectionIndex, 1);
-              setSections([...sections]);
+              const newSections = [...sections];
+              newSections.splice(sectionIndex, 1);
+              set(ref(Firebase.Database, STICKERS_DB), newSections).then(() =>
+                setSections([...newSections])
+              );
               close(modalIndex);
             },
           },
@@ -59,6 +65,10 @@ function App() {
     (sectionIndex: number, value: string) => {
       sections[sectionIndex].title = value;
       setSections([...sections]);
+      set(
+        ref(Firebase.Database, `${STICKERS_DB}/${sectionIndex}/title`),
+        value
+      );
     },
     [sections]
   );
@@ -80,9 +90,11 @@ function App() {
       const result = JSON.parse(
         (e.target?.result as string) || "[]"
       ) as Partial<SectionType>[];
-      console.log(result);
-      if (result.filter((s) => s.cards).length > 0)
+
+      if (result.filter((s) => s.cards).length > 0) {
         setSections([...(result as SectionType[])]);
+        set(ref(Firebase.Database, STICKERS_DB), result);
+      }
     };
   };
 
@@ -100,9 +112,9 @@ function App() {
       });
   }, []);
 
-  useMemo(() => {
-    if (sections.length > 0) set(ref(Firebase.Database, STICKERS_DB), sections);
-  }, [sections]);
+  // useMemo(() => {
+  //   if (sections.length > 0) set(ref(Firebase.Database, STICKERS_DB), sections);
+  // }, [sections]);
 
   return (
     <div className="app">
