@@ -3,61 +3,61 @@ import Card, { CardInfo } from "../Card";
 import NewCard from "../Card/NewCard";
 import { useModal } from "@/context/ModalContext";
 import Firebase, { STICKERS_DB } from "@/utils/Firebase";
-import { ref, set } from "firebase/database";
+import { push, ref, remove, set } from "firebase/database";
 
 const Section: React.FC<{
-  index: number;
+  sectionKey: string;
   title: string;
-  cards?: CardInfo[];
+  cards?: Record<string, CardInfo>;
   onBlur?: (text: string) => void;
   onClickRemove?: () => void;
-}> = ({ index, title, cards: initialCards, onBlur, onClickRemove }) => {
+}> = ({
+  sectionKey: index,
+  title,
+  cards: initialCards,
+  onBlur,
+  onClickRemove,
+}) => {
   const { showPrompt, close } = useModal();
-  const [cards, setCards] = useState<CardInfo[]>(initialCards || []);
 
   const handleAddCard = useCallback(() => {
-    const newCards = [...cards];
-    newCards.push({
-      name: `Elemento ${cards.length + 1}`,
+    push(ref(Firebase.Database, `${STICKERS_DB}/${index}/cards`), {
+      name: `Elemento ${Object.keys(initialCards || {}).length + 1}`,
       count: 0,
       reposition: 0,
     });
-    set(ref(Firebase.Database, `${STICKERS_DB}/${index}/cards`), newCards).then(
-      () => setCards([...newCards])
-    );
-  }, [cards, index]);
+  }, [initialCards, index]);
 
   const handleEditCard = useCallback(
-    (cardIndex: number) => (key: keyof CardInfo, value?: string | number) => {
-      const newCards = [...cards];
-      newCards[cardIndex][key] = (
-        typeof value === "number" && Number.isNaN(value)
-          ? cards[cardIndex][key]
-          : value
-      ) as never;
+    (cardKey: string) => (key: keyof CardInfo, value?: string | number) => {
       set(
-        ref(Firebase.Database, `${STICKERS_DB}/${index}/cards/${cardIndex}`),
-        newCards[cardIndex]
-      ).then(() => setCards([...newCards]));
+        ref(
+          Firebase.Database,
+          `${STICKERS_DB}/${index}/cards/${cardKey}/${key}`
+        ),
+        typeof value === "number" && Number.isNaN(value)
+          ? initialCards?.[cardKey][key]
+          : value
+      );
     },
-    [cards, index]
+    [initialCards, index]
   );
 
   const handleRemoveCard = useCallback(
-    (cardIndex: number) => () => {
+    (cardKey: string) => () => {
       const modalIndex = showPrompt({
-        title: `Borrar '${cards[cardIndex].name}'`,
+        title: `Borrar '${initialCards?.[cardKey].name}'`,
         text: "Seguro queres borrar este elemento?",
         buttons: [
           {
             title: "Si",
             onClick: () => {
-              const newCards = [...cards];
-              newCards.splice(cardIndex, 1);
-              set(
-                ref(Firebase.Database, `${STICKERS_DB}/${index}/cards`),
-                newCards
-              ).then(() => setCards([...newCards]));
+              remove(
+                ref(
+                  Firebase.Database,
+                  `${STICKERS_DB}/${index}/cards/${cardKey}`
+                )
+              );
               close(modalIndex);
             },
           },
@@ -65,7 +65,7 @@ const Section: React.FC<{
         ],
       });
     },
-    [cards, index, close, showPrompt]
+    [initialCards, index, close, showPrompt]
   );
 
   return (
@@ -85,12 +85,12 @@ const Section: React.FC<{
         </button>
       </div>
       <div className="cards-wrap">
-        {cards.map((card, index) => (
+        {Object.keys(initialCards || {}).map((key, index) => (
           <Card
             key={`Card${index + title}`}
-            data={card}
-            onChange={handleEditCard(index)}
-            onClickRemove={handleRemoveCard(index)}
+            data={initialCards?.[key]}
+            onChange={handleEditCard(key)}
+            onClickRemove={handleRemoveCard(key)}
           />
         ))}
         <NewCard onClick={handleAddCard} />

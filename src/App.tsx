@@ -1,11 +1,5 @@
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import database from "firebase/database";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Button from "@/components/Button";
 import { CardInfo } from "@/components/Card";
 
@@ -16,40 +10,37 @@ import { exportData } from "@/utils/fileFunctions";
 
 import "./app.scss";
 import { useModal } from "./context/ModalContext";
-import { get, onValue, ref, set } from "firebase/database";
+
 import Firebase, { STICKERS_DB } from "./utils/Firebase";
 import Spinner from "./components/Spinner";
 import Section from "./components/Section";
 
-type SectionType = { title?: string; cards: CardInfo[] };
+type SectionType = { title?: string; cards: Record<string, CardInfo> };
 
 function App() {
   const { showPrompt, close } = useModal();
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [sections, setSections] = useState<SectionType[]>([]);
+  const [sections, setSections] = useState<Record<string, SectionType>>({});
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleAddSection = useCallback(() => {
-    const newSections = [...sections];
-    newSections.push({ title: `Sección ${sections.length + 1}`, cards: [] });
-    set(ref(Firebase.Database, STICKERS_DB), newSections).then(() =>
-      setSections([...newSections])
-    );
+    database.push(database.ref(Firebase.Database, STICKERS_DB), {
+      title: `Sección ${Object.keys(sections).length + 1}`,
+      cards: {},
+    });
   }, [sections]);
 
   const handleRemoveSection = useCallback(
-    (sectionIndex: number) => {
+    (key: string) => {
       const modalIndex = showPrompt({
-        title: `Borrar '${sections[sectionIndex].title}'`,
+        title: `Borrar '${sections[key].title}'`,
         text: "Seguro queres borrar esta seccion? Esto tambien va a borrar todo el contenido.",
         buttons: [
           {
             title: "Si",
             onClick: () => {
-              const newSections = [...sections];
-              newSections.splice(sectionIndex, 1);
-              set(ref(Firebase.Database, STICKERS_DB), newSections).then(() =>
-                setSections([...newSections])
+              database.remove(
+                database.ref(Firebase.Database, `${STICKERS_DB}/${key}`)
               );
               close(modalIndex);
             },
@@ -61,17 +52,12 @@ function App() {
     [sections, close, showPrompt]
   );
 
-  const handleChangeSectionTitle = useCallback(
-    (sectionIndex: number, value: string) => {
-      sections[sectionIndex].title = value;
-      setSections([...sections]);
-      set(
-        ref(Firebase.Database, `${STICKERS_DB}/${sectionIndex}/title`),
-        value
-      );
-    },
-    [sections]
-  );
+  const handleChangeSectionTitle = useCallback((key: string, value: string) => {
+    database.set(
+      database.ref(Firebase.Database, `${STICKERS_DB}/${key}/title`),
+      value
+    );
+  }, []);
 
   const handleSaveFile = async () => {
     exportData(
@@ -92,29 +78,28 @@ function App() {
       ) as Partial<SectionType>[];
 
       if (result.filter((s) => s.cards).length > 0) {
-        setSections([...(result as SectionType[])]);
-        set(ref(Firebase.Database, STICKERS_DB), result);
+        database.set(database.ref(Firebase.Database, STICKERS_DB), result);
       }
     };
   };
 
   useEffect(() => {
     setLoading(true);
-    get(ref(Firebase.Database, STICKERS_DB))
+    database
+      .get(database.ref(Firebase.Database, STICKERS_DB))
       .then((snap) => {
-        if (snap.exists()) setSections(snap.val());
+        if (snap.exists()) setSections({ ...(snap.val() || {}) });
       })
       .finally(() => {
         setLoading(false);
-        onValue(ref(Firebase.Database, STICKERS_DB), (snap) => {
-          if (snap.val()) setSections(snap.val());
-        });
+        database.onValue(
+          database.ref(Firebase.Database, STICKERS_DB),
+          (snap) => {
+            setSections({ ...(snap.val() || {}) });
+          }
+        );
       });
   }, []);
-
-  // useMemo(() => {
-  //   if (sections.length > 0) set(ref(Firebase.Database, STICKERS_DB), sections);
-  // }, [sections]);
 
   return (
     <div className="app">
@@ -150,18 +135,21 @@ function App() {
       {loading ? (
         <Spinner />
       ) : (
-        sections.map((section, sectionIndex) => (
-          <Section
-            key={`Section:${section.title}${sectionIndex + 1}`}
-            index={sectionIndex}
-            title={section.title || `Sección ${sectionIndex + 1}`}
-            cards={section.cards}
-            onBlur={(text) => handleChangeSectionTitle(sectionIndex, text)}
-            onClickRemove={() => handleRemoveSection(sectionIndex)}
-          />
-        ))
+        Object.keys(sections).map((key, sectionIndex) => {
+          const section = sections[key];
+          return (
+            <Section
+              key={`Section:${section.title}${sectionIndex + 1}`}
+              sectionKey={key}
+              title={section.title || `Sección ${sectionIndex + 1}`}
+              cards={section.cards}
+              onBlur={(text) => handleChangeSectionTitle(key, text)}
+              onClickRemove={() => handleRemoveSection(key)}
+            />
+          );
+        })
       )}
-      {sections.length > 0 && <hr />}
+      {Object.keys(sections).length > 0 && <hr />}
       <Button
         color="secondary"
         text="+ Agregar sección"
