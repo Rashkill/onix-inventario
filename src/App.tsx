@@ -1,4 +1,4 @@
-import database from "firebase/database";
+import { get, onValue, push, ref, remove, set } from "firebase/database";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Button from "@/components/Button";
 import { CardInfo } from "@/components/Card";
@@ -24,7 +24,7 @@ function App() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleAddSection = useCallback(() => {
-    database.push(database.ref(Firebase.Database, STICKERS_DB), {
+    push(ref(Firebase.Database, STICKERS_DB), {
       title: `Sección ${Object.keys(sections).length + 1}`,
       cards: {},
     });
@@ -34,14 +34,12 @@ function App() {
     (key: string) => {
       const modalIndex = showPrompt({
         title: `Borrar '${sections[key].title}'`,
-        text: "Seguro queres borrar esta seccion? Esto tambien va a borrar todo el contenido.",
+        text: "Seguro querés borrar esta seccion? Esto tambien va a borrar todo el contenido.",
         buttons: [
           {
             title: "Si",
             onClick: () => {
-              database.remove(
-                database.ref(Firebase.Database, `${STICKERS_DB}/${key}`)
-              );
+              remove(ref(Firebase.Database, `${STICKERS_DB}/${key}`));
               close(modalIndex);
             },
           },
@@ -53,10 +51,7 @@ function App() {
   );
 
   const handleChangeSectionTitle = useCallback((key: string, value: string) => {
-    database.set(
-      database.ref(Firebase.Database, `${STICKERS_DB}/${key}/title`),
-      value
-    );
+    set(ref(Firebase.Database, `${STICKERS_DB}/${key}/title`), value);
   }, []);
 
   const handleSaveFile = async () => {
@@ -73,31 +68,56 @@ function App() {
     const fileReader = new FileReader();
     fileReader.readAsText(e.target.files[0], "UTF-8");
     fileReader.onload = (e) => {
+      const isArray = e.target?.result?.slice(0, 1) === "[";
       const result = JSON.parse(
-        (e.target?.result as string) || "[]"
-      ) as Partial<SectionType>[];
+        (e.target?.result as string) || isArray ? "[]" : "{}"
+      );
 
-      if (result.filter((s) => s.cards).length > 0) {
-        database.set(database.ref(Firebase.Database, STICKERS_DB), result);
+      if (isArray) {
+        if (
+          (result as Partial<{ title?: string; cards: CardInfo[] }>[]).filter(
+            (s) => s.cards
+          ).length > 0
+        ) {
+          set(ref(Firebase.Database, STICKERS_DB), []);
+          (result as Partial<{ title?: string; cards: CardInfo[] }>[]).forEach(
+            (section) => {
+              const sectionKey = push(ref(Firebase.Database, STICKERS_DB), {
+                ...section,
+                cards: {},
+              }).key;
+              section.cards?.forEach((card) => {
+                push(
+                  ref(Firebase.Database, `${STICKERS_DB}/${sectionKey}/cards`),
+                  card
+                );
+              });
+            }
+          );
+        } else if (
+          Object.values(
+            result as Record<
+              string,
+              Partial<{ title?: string; cards: CardInfo[] }>
+            >
+          ).filter((s) => s.cards).length > 0
+        )
+          set(ref(Firebase.Database, STICKERS_DB), result);
       }
     };
   };
 
   useEffect(() => {
     setLoading(true);
-    database
-      .get(database.ref(Firebase.Database, STICKERS_DB))
+    get(ref(Firebase.Database, STICKERS_DB))
       .then((snap) => {
         if (snap.exists()) setSections({ ...(snap.val() || {}) });
       })
       .finally(() => {
         setLoading(false);
-        database.onValue(
-          database.ref(Firebase.Database, STICKERS_DB),
-          (snap) => {
-            setSections({ ...(snap.val() || {}) });
-          }
-        );
+        onValue(ref(Firebase.Database, STICKERS_DB), (snap) => {
+          setSections({ ...(snap.val() || {}) });
+        });
       });
   }, []);
 
