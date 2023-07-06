@@ -50,31 +50,6 @@
       margin: 0;
     }
   }
-  .section-title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background-color: #e8f4ff;
-    border-bottom: 2px solid #202020;
-    border-top: 2px solid #202020;
-    width: 100%;
-    > button.delete {
-      cursor: pointer;
-      appearance: none;
-      outline: none;
-      border: none;
-      border-radius: 20px;
-      background-color: #ff5c74;
-      color: white;
-      height: 30px;
-    }
-  }
-  .cards-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
 
   > hr {
     margin-top: 20px;

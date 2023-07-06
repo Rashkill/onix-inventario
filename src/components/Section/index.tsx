@@ -1,9 +1,12 @@
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import Card, { CardInfo } from "../Card";
 import NewCard from "../Card/NewCard";
 import { useModal } from "@/context/ModalContext";
 import Firebase, { STICKERS_DB } from "@/utils/Firebase";
 import { push, ref, remove, set } from "firebase/database";
+
+import "./section.scss";
+import ChevronDown from "@/assets/icons/ChevronDown";
 
 const Section: React.FC<{
   sectionKey: string;
@@ -19,6 +22,9 @@ const Section: React.FC<{
   onClickRemove,
 }) => {
   const { showPrompt, close } = useModal();
+
+  const [open, setOpen] = useState(true);
+  const [originalHeight, setOriginalHeight] = useState(0);
 
   const handleAddCard = useCallback(() => {
     push(ref(Firebase.Database, `${STICKERS_DB}/${index}/cards`), {
@@ -70,21 +76,47 @@ const Section: React.FC<{
 
   return (
     <>
-      <div className="section-title">
+      <button
+        className="section-title"
+        onClick={() => setOpen((prev) => !prev)}
+      >
         <h2
           style={{ fontWeight: 500 }}
           contentEditable
+          onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
           onBlur={(e) => onBlur?.(e.target.innerText)}
           dangerouslySetInnerHTML={{
             __html: title,
           }}
         />
-        <button className="delete" onClick={onClickRemove}>
+        <button
+          className="delete"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClickRemove?.();
+          }}
+        >
           Eliminar
         </button>
-      </div>
-      <div className="cards-wrap">
+
+        <button className={`chevron${open ? " open" : ""}`}>
+          <ChevronDown />
+        </button>
+      </button>
+      <div
+        className="cards-wrap"
+        ref={(ref) =>
+          setOriginalHeight((prev) =>
+            !prev ? Number(ref?.clientHeight || 0) : prev
+          )
+        }
+        style={{
+          ...(originalHeight
+            ? { height: open ? `${originalHeight}px` : "0px" }
+            : {}),
+        }}
+      >
         {Object.keys(initialCards || {}).map((key, index) => (
           <Card
             key={`Card${index + title}`}

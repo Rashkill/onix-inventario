@@ -1,0 +1,36 @@
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: #e8f4ff;
+  border-bottom: 2px solid #202020;
+  border-top: 2px solid #202020;
+  width: 100%;
+  > button.delete {
+    cursor: pointer;
+    border-radius: 20px;
+    background-color: #ff5c74;
+    color: white;
+    height: 30px;
+  }
+  > .chevron {
+    position: absolute;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    aspect-ratio: 1;
+    transition: transform 0.25s ease;
+    &.open {
+      transform: rotate(180deg);
+    }
+  }
+}
+.cards-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  overflow: hidden;
+  transition: height 0.4s ease;
+}

@@ -74,6 +74,15 @@ body {
   transition: all 0.2s ease;
 }
 
+button {
+  appearance: none;
+  outline: none;
+  border: none;
+  cursor: pointer;
+  font-family: "ClashDisplay", Inter, system-ui, Avenir, Helvetica, Arial,
+    sans-serif;
+}
+
 .onix-button[color="primary"] {
   color: #fefefe;
   background-color: #202020;
