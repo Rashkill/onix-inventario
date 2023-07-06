@@ -83,11 +83,7 @@ const Section: React.FC<{
           type="radio"
           name="radio-accordion"
           hidden
-          onClick={(e) => {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
-            onChange?.(!e.target.checked);
-          }}
+          onClick={() => onChange?.(!open)}
           onChange={(e) => onChange?.(e.target.checked)}
         />
         <h2
@@ -110,9 +106,7 @@ const Section: React.FC<{
           Eliminar
         </button>
 
-        <button className={`chevron${open ? " open" : ""}`}>
-          <ChevronDown />
-        </button>
+        <ChevronDown className={`chevron${open ? " open" : ""}`} />
       </label>
       <div
         className="cards-wrap"
