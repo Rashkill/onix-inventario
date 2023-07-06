@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import Card, { CardInfo } from "../Card";
 import NewCard from "../Card/NewCard";
 import { useModal } from "@/context/ModalContext";
@@ -10,20 +10,22 @@ import ChevronDown from "@/assets/icons/ChevronDown";
 
 const Section: React.FC<{
   sectionKey: string;
+  open?: boolean;
   title: string;
   cards?: Record<string, CardInfo>;
+  onChange?: (checked: boolean) => void;
   onBlur?: (text: string) => void;
   onClickRemove?: () => void;
 }> = ({
+  open,
   sectionKey: index,
   title,
   cards: initialCards,
+  onChange,
   onBlur,
   onClickRemove,
 }) => {
   const { showPrompt, close } = useModal();
-
-  const [open, setOpen] = useState(true);
   const [originalHeight, setOriginalHeight] = useState(0);
 
   const handleAddCard = useCallback(() => {
@@ -76,10 +78,18 @@ const Section: React.FC<{
 
   return (
     <>
-      <button
-        className="section-title"
-        onClick={() => setOpen((prev) => !prev)}
-      >
+      <label className="section-title">
+        <input
+          type="radio"
+          name="radio-accordion"
+          hidden
+          onClick={(e) => {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
+            onChange?.(!e.target.checked);
+          }}
+          onChange={(e) => onChange?.(e.target.checked)}
+        />
         <h2
           style={{ fontWeight: 500 }}
           contentEditable
@@ -103,7 +113,7 @@ const Section: React.FC<{
         <button className={`chevron${open ? " open" : ""}`}>
           <ChevronDown />
         </button>
-      </button>
+      </label>
       <div
         className="cards-wrap"
         ref={(ref) =>

@@ -5,6 +5,7 @@ import Button from "@/components/Button";
 import Section from "@/components/Section";
 import Spinner from "@/components/Spinner";
 import useHome from "./useHome";
+import { useState } from "react";
 
 const Home = () => {
   const {
@@ -17,6 +18,8 @@ const Home = () => {
     handleLoadFile,
     handleSaveFile,
   } = useHome();
+
+  const [currentSection, setCurrentSection] = useState(-1);
 
   return (
     <div className="app">
@@ -62,6 +65,10 @@ const Home = () => {
               cards={section.cards}
               onBlur={(text) => handleChangeSectionTitle(key, text)}
               onClickRemove={() => handleRemoveSection(key)}
+              open={sectionIndex === currentSection}
+              onChange={(checked) =>
+                setCurrentSection(checked ? sectionIndex : -1)
+              }
             />
           );
         })
