@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import Card, { CardInfo } from "../Card";
 import NewCard from "../Card/NewCard";
 import { useModal } from "@/context/ModalContext";
