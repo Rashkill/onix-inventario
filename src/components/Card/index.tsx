@@ -43,14 +43,14 @@ const Card: React.FC<{
   return (
     <div
       className={`card${isDragged ? " dragged" : ""}`}
-      draggable
-      onDragStart={() => {
-        setIsDragged(true);
-      }}
-      onDragEnd={() => {
-        setIsDragged(false);
-      }}
-      onDragOver={(e) => !isDragged && console.log(e.target)}
+      // draggable
+      // onDragStart={() => {
+      //   setIsDragged(true);
+      // }}
+      // onDragEnd={() => {
+      //   setIsDragged(false);
+      // }}
+      // onDragOver={(e) => !isDragged && console.log(e.target)}
     >
       <div className="card-name" draggable={false}>
         <p
